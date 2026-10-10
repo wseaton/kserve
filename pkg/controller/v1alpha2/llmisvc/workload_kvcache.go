@@ -188,6 +188,9 @@ func kvTransferJSON(kv *v1alpha2.KVCacheOffloadingSpec) (string, error) {
 			"type":     "fs",
 			"root_dir": fmt.Sprintf("/mnt/kv-cache-%d", i),
 		}
+		if s.FileSystem.KVEvents {
+			entry["enable_kv_events"] = true
+		}
 		secondaryTiers = append(secondaryTiers, entry)
 	}
 	if len(secondaryTiers) > 0 {

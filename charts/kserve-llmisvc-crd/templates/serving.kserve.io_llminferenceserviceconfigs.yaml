@@ -25816,6 +25816,8 @@ spec:
                                 required:
                                   - size
                                 type: object
+                              kvEvents:
+                                type: boolean
                               pvc:
                                 properties:
                                   ref:
@@ -26023,6 +26025,8 @@ spec:
                                     required:
                                       - size
                                     type: object
+                                  kvEvents:
+                                    type: boolean
                                   pvc:
                                     properties:
                                       ref:

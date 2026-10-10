@@ -273,6 +273,13 @@ type FileSystemTierSpec struct {
 	// but not both.
 	// +optional
 	PVC *PVCTierSpec `json:"pvc,omitempty"`
+
+	// KVEvents makes this tier publish a BlockStored KV cache event, with medium
+	// STORAGE, for every block it writes (vLLM enable_kv_events). Consumers such as
+	// an external evictor use these to know which blocks are on disk. Takes effect
+	// only when the engine publishes KV cache events (--kv-events-config).
+	// +optional
+	KVEvents bool `json:"kvEvents,omitempty"`
 }
 
 // EmptyDirTierSpec configures a node-local ephemeral emptyDir volume as a KV cache tier.

@@ -312,6 +312,41 @@ func TestApplyKVCacheCarriers(t *testing.T) {
 		}
 	})
 
+	t.Run("kvEvents adds enable_kv_events to its tier only", func(t *testing.T) {
+		emptyDir := &v1alpha2.EmptyDirTierSpec{Size: resource.MustParse("100Gi")}
+		got, err := kvTransferJSON(&v1alpha2.KVCacheOffloadingSpec{
+			CPU: resource.MustParse("10Gi"),
+			Secondary: []v1alpha2.SecondaryTierSpec{
+				{FileSystem: &v1alpha2.FileSystemTierSpec{EmptyDir: emptyDir, KVEvents: true}},
+				{FileSystem: &v1alpha2.FileSystemTierSpec{EmptyDir: emptyDir}},
+			},
+		})
+		if err != nil {
+			t.Fatalf("kvTransferJSON() error = %v", err)
+		}
+		want := `{"kv_connector":"OffloadingConnector","kv_connector_extra_config":{"cpu_bytes_to_use":10737418240,` +
+			`"secondary_tiers":[{"enable_kv_events":true,"root_dir":"/mnt/kv-cache-0","type":"fs"},` +
+			`{"root_dir":"/mnt/kv-cache-1","type":"fs"}],"spec_name":"TieringOffloadingSpec"},"kv_role":"kv_both"}`
+		if got != want {
+			t.Errorf("kvTransferJSON():\n got  %s\n want %s", got, want)
+		}
+	})
+
+	t.Run("an unset kvEvents leaves the payload unchanged", func(t *testing.T) {
+		got, err := kvTransferJSON(&v1alpha2.KVCacheOffloadingSpec{
+			CPU: resource.MustParse("10Gi"),
+			Secondary: []v1alpha2.SecondaryTierSpec{{
+				FileSystem: &v1alpha2.FileSystemTierSpec{EmptyDir: &v1alpha2.EmptyDirTierSpec{Size: resource.MustParse("100Gi")}},
+			}},
+		})
+		if err != nil {
+			t.Fatalf("kvTransferJSON() error = %v", err)
+		}
+		if strings.Contains(got, "enable_kv_events") {
+			t.Errorf("an unset kvEvents must not change the payload of existing workloads, got %s", got)
+		}
+	})
+
 	t.Run("spec name follows the tiers, not the caller", func(t *testing.T) {
 		cpuOnly, err := kvTransferJSON(&v1alpha2.KVCacheOffloadingSpec{CPU: resource.MustParse("10Gi")})
 		if err != nil {
